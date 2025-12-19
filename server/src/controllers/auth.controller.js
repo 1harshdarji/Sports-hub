@@ -61,9 +61,14 @@ const register = async (req, res, next) => {
             }
         });
     } catch (error) {
-        next(error);
-    }
-};
+        console.error("REGISTER ERROR:", error);
+
+        return res.status(400).json({
+            success: false,
+            message: error.message || "Registration failed from backend",});
+    };
+}
+
 
 /**
  * Login user with email/username and password
