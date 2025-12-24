@@ -16,7 +16,7 @@ router.post('/register', [
 
 // Login
 router.post('/login', [
-    body('identifier').trim().notEmpty(),
+    body('email').isEmail(),
     body('password').notEmpty(),
     validate
 ], authController.login);
