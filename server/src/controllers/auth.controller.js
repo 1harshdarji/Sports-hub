@@ -78,11 +78,17 @@ const login = async (req, res, next) => {
         const { identifier, password } = req.body;
 
         // Find user by email or username
-        const [users] = await db.execute(
+        /*const [users] = await db.execute(
             `SELECT id, username, email, password, first_name, last_name, role, avatar_url
              FROM users WHERE email = ? OR username = ?`,
             [identifier, identifier]
+        );*/
+        const [users] = await db.execute(
+            `SELECT id, username, email, password, first_name, last_name, role, avatar_url, is_active
+             FROM users WHERE email = ? OR username = ?`,
+            [identifier, identifier]
         );
+
 
         if (users.length === 0) {
             return res.status(401).json({
@@ -94,12 +100,12 @@ const login = async (req, res, next) => {
         const user = users[0];
 
         // Check if account is active
-        /*if (!user.is_active) {
+        if (!user.is_active) {
             return res.status(401).json({
                 success: false,
                 message: 'Account is deactivated. Please contact support.'
             });
-        }*/
+        }
 
         // Verify password
         const isValidPassword = await bcrypt.compare(password, user.password);
