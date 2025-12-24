@@ -75,7 +75,7 @@ const register = async (req, res, next) => {
  */
 const login = async (req, res, next) => {
     try {
-        const { identifier, password } = req.body;
+        const { email, password } = req.body;
 
         // Find user by email or username
         /*const [users] = await db.execute(
@@ -85,8 +85,8 @@ const login = async (req, res, next) => {
         );*/
         const [users] = await db.execute(
             `SELECT id, username, email, password, first_name, last_name, role, avatar_url, is_active
-             FROM users WHERE email = ? OR username = ?`,
-            [identifier, identifier]
+             FROM users WHERE email = ?`,
+            [email]
         );
 
 
