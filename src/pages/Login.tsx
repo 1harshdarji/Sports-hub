@@ -30,6 +30,8 @@ const Login = () => {
 
     // ✅ store token
     localStorage.setItem("token", res.data.data.token);
+    localStorage.setItem("username", res.data.data.user.username);
+
 
     alert("Login successful");
 
