@@ -119,7 +119,7 @@ app.use((err, req, res, next) => {
 // =============================================
 
 // Test database connection and start server
-async function startServer() {
+/*async function startServer() {
     try {
         // Test database connection
         const connection = await db.getConnection();
@@ -138,4 +138,24 @@ async function startServer() {
     }
 }
 
+startServer();*/
+
+async function startServer() {
+    try {
+        // Test database connection
+        const connection = await db.getConnection();
+        console.log('✅ Database connected successfully');
+        connection.release();
+    } catch (error) {
+        console.error('❌ Database connection failed:', error.message);
+        // ❌ DO NOT exit the process
+    }
+
+    // ✅ ALWAYS start the server
+    app.listen(PORT, () => {
+        console.log(`✅ Server running on port ${PORT}`);
+    });
+}
+
 startServer();
+
