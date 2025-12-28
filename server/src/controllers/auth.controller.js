@@ -12,7 +12,7 @@ const db = require('../config/database');
  */
 const register = async (req, res, next) => {
     try {
-        const { username, email, password, firstName, lastName, phone } = req.body;
+        const { username, email, password, firstName, lastName, phone, gender } = req.body;
 
         // Check if user already exists
         const [existing] = await db.execute(
@@ -27,20 +27,20 @@ const register = async (req, res, next) => {
             });
         }
 
-        // Hash password
+        // Hash password yes
         const salt = await bcrypt.genSalt(12);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Insert user
         const [result] = await db.execute(
-            `INSERT INTO users (username, email, password, first_name, last_name, phone, role)
-             VALUES (?, ?, ?, ?, ?, ?, 'user')`,
-            [username, email, hashedPassword, firstName, lastName, phone || null]
+            `INSERT INTO users (username, email, password, first_name, last_name, gender, phone, role)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 'user')`,
+            [username, email, hashedPassword, firstName, lastName, gender, phone || null]
         );
 
         // Generate JWT token
         const token = jwt.sign(
-            { userId: result.insertId },
+            { userId: result.insertId, role: 'user' },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
         );
@@ -55,6 +55,7 @@ const register = async (req, res, next) => {
                     email,
                     firstName,
                     lastName,
+                    gender,
                     role: 'user'
                 },
                 token
@@ -75,20 +76,14 @@ const register = async (req, res, next) => {
  */
 const login = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { identifier, password } = req.body;
 
         // Find user by email or username
-        /*const [users] = await db.execute(
-            `SELECT id, username, email, password, first_name, last_name, role, avatar_url
+        const [users] = await db.execute(
+            `SELECT id, username, email, password, first_name, last_name, gender, role, is_active, avatar_url
              FROM users WHERE email = ? OR username = ?`,
             [identifier, identifier]
-        );*/
-        const [users] = await db.execute(
-            `SELECT id, username, email, password, first_name, last_name, role, avatar_url, is_active
-             FROM users WHERE email = ?`,
-            [email]
         );
-
 
         if (users.length === 0) {
             return res.status(401).json({
@@ -118,8 +113,8 @@ const login = async (req, res, next) => {
         }
 
         // Generate JWT token
-        const token = jwt.sign(
-            { userId: user.id },
+       const token = jwt.sign(
+            { userId: user.id, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
         );
@@ -137,6 +132,7 @@ const login = async (req, res, next) => {
                     email: user.email,
                     firstName: user.first_name,
                     lastName: user.last_name,
+                    gender: user.gender,
                     role: user.role,
                     avatarUrl: user.avatar_url
                 },
@@ -181,20 +177,19 @@ const getMe = async (req, res, next) => {
         res.json({
             success: true,
             data: {
-                user: {
-                    id: user.id,
-                    username: user.username,
-                    email: user.email,
-                    firstName: user.first_name,
-                    lastName: user.last_name,
-                    phone: user.phone,
-                    avatarUrl: user.avatar_url,
-                    role: user.role,
-                    createdAt: user.created_at
-                },
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                first_name: user.first_name,   // Added: match profile.controller
+                last_name: user.last_name,     // Added
+                phone: user.phone,
+                avatar_url: user.avatar_url,
+                role: user.role,
+                created_at: user.created_at,
                 membership: memberships.length > 0 ? memberships[0] : null
             }
         });
+
     } catch (error) {
         next(error);
     }
